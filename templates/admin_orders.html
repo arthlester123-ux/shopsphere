@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Manage Orders | ShopSphere{% endblock %}
+{% block content %}
+<div class="page-heading"><p class="eyebrow">FULFILLMENT</p><h1>Manage orders</h1></div>
+<div class="panel table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Current status</th><th>Update status</th></tr></thead><tbody>
+{% for o in orders %}<tr><td>{{ o.order_number }}<small>{{ o.created_at }}</small></td><td>{{ o.full_name }}<small>{{ o.email }}</small></td><td>₱{{ '%.2f'|format(o.total) }}</td><td>{{ o.payment_method or 'Cash on Delivery' }}</td><td><span class="status status-{{ o.status|lower }}">{{ o.status }}</span></td><td><form method="post" action="{{ url_for('update_order_status', order_id=o.id) }}" class="status-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><select name="status">{% for s in ['Pending','Processing','Shipped','Delivered','Cancelled'] %}<option {% if o.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select><button class="btn btn-small btn-primary">Save</button></form></td></tr>{% else %}<tr><td colspan="6">No orders found.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

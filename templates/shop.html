@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Shop | ShopSphere{% endblock %}
+{% block content %}
+<section class="hero hero-modern" data-reveal>
+  <div class="hero-copy-wrap"><span class="hero-kicker"><span class="live-dot"></span> THE EVERYDAY FINDS EDIT</span><h1>Little upgrades.<br><span>Better everyday.</span></h1><p>Discover practical picks for your desk, your home, and everywhere life takes you.</p><div class="hero-actions"><a class="btn btn-yellow" href="#products">Shop the collection <span>→</span></a><span class="hero-note">Fresh finds, thoughtfully picked.</span></div></div>
+  <div class="hero-visual" aria-hidden="true"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-product product-one">✦</div><div class="hero-product product-two">S</div><div class="hero-product product-three">✧</div><div class="hero-sticker">GOOD<br>FINDS<br><b>ONLY</b></div></div>
+  <div class="hero-bottom-line"><span>CURATED FOR YOUR EVERYDAY</span><span>SCROLL TO EXPLORE ↓</span></div>
+</section>
+
+<section class="benefit-strip" aria-label="Shopping benefits" data-reveal>
+  <div class="benefit-item"><span class="benefit-icon">⌕</span><div><strong>Easy discovery</strong><small>Find what you need</small></div></div>
+  <div class="benefit-item"><span class="benefit-icon">♡</span><div><strong>Useful picks</strong><small>Everyday essentials</small></div></div>
+  <div class="benefit-item"><span class="benefit-icon">↗</span><div><strong>Simple checkout</strong><small>Shopping made easy</small></div></div>
+  <div class="benefit-item"><span class="benefit-icon">✓</span><div><strong>Shop with ease</strong><small>Clear product details</small></div></div>
+</section>
+
+<section class="category-section" id="categories" data-reveal>
+  <div class="section-title-row"><div><p class="eyebrow">BROWSE YOUR WAY</p><h2>Shop by category</h2></div><span class="section-aside">Find your next favorite</span></div>
+  <div class="category-chips"><a class="category-chip {% if not selected_category %}active{% endif %}" href="{{ url_for('home') }}#products"><span>✦</span> All products</a>{% for c in categories %}<a class="category-chip {% if selected_category == c.category %}active{% endif %}" href="{{ url_for('home', category=c.category) }}#products"><span>↗</span> {{ c.category }}</a>{% endfor %}</div>
+</section>
+
+<section class="catalog-section" id="products" data-reveal>
+  <div class="catalog-heading"><div><p class="eyebrow">THE SHOP</p><h2>{% if selected_category %}{{ selected_category }}{% else %}Explore products{% endif %}</h2><p class="catalog-subtitle">Thoughtful finds for your everyday routine.</p></div>
+    <form class="catalog-search" method="get" action="{{ url_for('home') }}"><label class="search-box"><span>⌕</span><input name="q" value="{{ search }}" placeholder="Search products..." aria-label="Search products">{% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}</label><button class="btn btn-primary" type="submit">Search</button></form>
+  </div>
+  <form class="catalog-toolbar catalog-filter-form" method="get" action="{{ url_for('home') }}"><div class="result-count">Showing <strong>{{ products|length }}</strong> product{% if products|length != 1 %}s{% endif %}{% if search %} for “{{ search }}”{% endif %}</div><div class="toolbar-actions"><input type="hidden" name="q" value="{{ search }}"><input type="hidden" name="category" value="{{ selected_category }}"><label class="sort-control">Min ₱ <input class="price-filter" type="number" name="min_price" min="0" step="0.01" value="{{ min_price }}" placeholder="0"></label><label class="sort-control">Max ₱ <input class="price-filter" type="number" name="max_price" min="0" step="0.01" value="{{ max_price }}" placeholder="Any"></label><label class="sort-control">Sort by <select name="sort" aria-label="Sort products"><option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option><option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: low to high</option><option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: high to low</option><option value="name" {% if sort == 'name' %}selected{% endif %}>Name: A to Z</option><option value="stock" {% if sort == 'stock' %}selected{% endif %}>Stock availability</option></select></label><button class="btn btn-outline btn-small" type="submit">Apply filters</button><div class="view-toggle" aria-label="Product view"><button type="button" class="view-button active" data-view="grid" aria-label="Grid view">▦</button><button type="button" class="view-button" data-view="list" aria-label="List view">☷</button></div></div></form>
+  {% if products %}
+  <div class="product-grid product-grid-modern" id="productGrid">
+    {% for p in products %}
+    <article class="product-card product-card-modern" data-price="{{ p.price }}" data-name="{{ p.name|lower|e }}" data-index="{{ loop.index }}">
+      <div class="product-media">
+        <button class="product-image quick-view-trigger" type="button" aria-label="Quick view {{ p.name }}"
+          data-name="{{ p.name }}" data-category="{{ p.category }}" data-price="₱{{ '%.2f'|format(p.price) }}"
+          data-description="{{ p.description or 'No additional description is available for this product.' }}" data-stock="{{ p.stock }}"
+          data-image="{{ p.image_url or '' }}" data-details-url="{{ url_for('product_detail', product_id=p.id) }}"
+          data-cart-url="{{ url_for('add_to_cart', product_id=p.id) }}" data-authenticated="{{ 'true' if session.get('user_id') else 'false' }}">
+          {% if p.image_url %}<img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">{% endif %}
+          <div class="image-fallback" {% if p.image_url %}style="display:none"{% endif %}>{{ p.name[:1] }}</div>
+          {% if p.stock <= 0 %}<span class="product-label sold-label">Sold out</span>{% elif loop.index <= 2 %}<span class="product-label new-label">New find</span>{% endif %}
+        </button>
+        <button type="button" class="favorite-button" aria-label="Add {{ p.name }} to wishlist" aria-pressed="false" data-favorite="{{ p.id }}">♡</button>
+        <button class="quick-shop-button quick-view-trigger" type="button"
+          data-name="{{ p.name }}" data-category="{{ p.category }}" data-price="₱{{ '%.2f'|format(p.price) }}"
+          data-description="{{ p.description or 'No additional description is available for this product.' }}" data-stock="{{ p.stock }}"
+          data-image="{{ p.image_url or '' }}" data-details-url="{{ url_for('product_detail', product_id=p.id) }}"
+          data-cart-url="{{ url_for('add_to_cart', product_id=p.id) }}" data-authenticated="{{ 'true' if session.get('user_id') else 'false' }}">Quick view <span>↗</span></button>
+      </div>
+      <div class="product-info product-info-modern"><span class="category">{{ p.category }}</span><h3><button class="product-title-link quick-view-trigger" type="button"
+        data-name="{{ p.name }}" data-category="{{ p.category }}" data-price="₱{{ '%.2f'|format(p.price) }}"
+        data-description="{{ p.description or 'No additional description is available for this product.' }}" data-stock="{{ p.stock }}"
+        data-image="{{ p.image_url or '' }}" data-details-url="{{ url_for('product_detail', product_id=p.id) }}"
+        data-cart-url="{{ url_for('add_to_cart', product_id=p.id) }}" data-authenticated="{{ 'true' if session.get('user_id') else 'false' }}">{{ p.name }}</button></h3>
+        <p class="product-description">{{ p.description or 'A useful everyday pick.' }}</p><div class="card-rating"><span class="rating-stars">{% for star in range(1, 6) %}{{ '★' if star <= (p.average_rating|round(0, 'floor')|int) else '☆' }}{% endfor %}</span><strong>{{ '%.1f'|format(p.average_rating) }}</strong><small>({{ p.review_count }})</small></div><div class="product-card-bottom"><strong>₱{{ '%.2f'|format(p.price) }}</strong>
+          {% if session.get('user_id') and p.stock > 0 %}<form method="post" action="{{ url_for('add_to_cart', product_id=p.id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="quantity" value="1"><button class="add-icon-button" type="submit" aria-label="Add {{ p.name }} to cart">＋</button></form>
+          {% elif not session.get('user_id') %}<a class="add-icon-button" href="{{ url_for('login') }}" aria-label="Log in to buy {{ p.name }}">＋</a>{% else %}<button class="add-icon-button" disabled aria-label="Out of stock">—</button>{% endif %}
+        </div><div class="card-stock-line"><span class="stock-dot {% if p.stock <= 0 %}stock-dot-out{% endif %}"></span>{% if p.stock > 0 %}{{ p.stock }} available{% else %}Currently unavailable{% endif %}<button class="text-details quick-view-trigger" type="button" data-name="{{ p.name }}" data-category="{{ p.category }}" data-price="₱{{ '%.2f'|format(p.price) }}" data-description="{{ p.description or 'No additional description is available for this product.' }}" data-stock="{{ p.stock }}" data-image="{{ p.image_url or '' }}" data-details-url="{{ url_for('product_detail', product_id=p.id) }}" data-cart-url="{{ url_for('add_to_cart', product_id=p.id) }}" data-authenticated="{{ 'true' if session.get('user_id') else 'false' }}">Details</button></div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}<div class="empty-state catalog-empty"><div class="empty-icon">⌕</div><h3>No products found</h3><p>Try another search or browse all categories.</p><a href="{{ url_for('home') }}#products" class="btn btn-outline">Clear filters</a></div>{% endif %}
+</section>
+
+<section class="newsletter-panel" data-reveal><div><p class="eyebrow">STAY IN THE LOOP</p><h2>Good finds are worth sharing.</h2><p>Keep exploring the latest additions to the ShopSphere collection.</p></div><a class="btn btn-yellow" href="#products">Explore the shop <span>→</span></a></section>
+
+<div class="quick-view-backdrop" id="quickView" aria-hidden="true" inert>
+  <section class="quick-view-dialog" role="dialog" aria-modal="true" aria-labelledby="quickViewName" aria-describedby="quickViewDescription">
+    <button class="quick-view-close" type="button" aria-label="Close product preview">×</button>
+    <div class="quick-view-image-column"><div class="quick-view-image-wrap"><img id="quickViewImage" class="quick-view-image" alt=""><div id="quickViewFallback" class="image-fallback quick-view-fallback">S</div></div><div class="quick-view-image-caption"><span>SHOPSPHERE PICK</span><span>✦ Everyday useful</span></div></div>
+    <div class="quick-view-content"><p class="eyebrow" id="quickViewCategory"></p><h2 id="quickViewName"></h2><div class="quick-view-price" id="quickViewPrice"></div><div class="quick-view-divider"></div><p class="quick-view-description" id="quickViewDescription"></p><div class="quick-view-stock-row"><span class="stock-dot" id="quickViewStockDot"></span><p class="quick-view-stock" id="quickViewStock"></p></div>
+      <form class="quick-view-cart-form" id="quickViewCartForm" method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label for="quickViewQuantity">Quantity</label><div class="quantity-stepper"><button type="button" data-quantity="minus" aria-label="Decrease quantity">−</button><input id="quickViewQuantity" type="number" name="quantity" min="1" value="1"><button type="button" data-quantity="plus" aria-label="Increase quantity">＋</button></div><button class="btn btn-primary quick-view-add" id="quickViewAdd" type="submit">Add to cart <span>→</span></button></form>
+      <a class="quick-view-login" id="quickViewLogin" href="{{ url_for('login') }}">Sign in to purchase</a><a class="quick-view-more" id="quickViewMore" href="#">More details <span>↗</span></a><div class="quick-view-assurances"><span>✓ Secure shopping</span><span>✓ Product information</span></div>
+    </div>
+  </section>
+</div>
+<div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+{% endblock %}

@@ -1,0 +1,4 @@
+-- ShopSphere database schema reference.
+-- The application creates/upgrades these tables automatically in app.py.
+-- Core tables: users, products, cart_items, orders, order_items.
+-- Supporting audit tables: payment_records, inventory_movements, order_status_history.

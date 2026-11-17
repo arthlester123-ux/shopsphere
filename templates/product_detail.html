@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} | ShopSphere{% endblock %}
+{% block content %}
+<section class="detail-layout">
+  <div class="detail-image-wrap">
+    {% if product.image_url %}<img class="detail-image" src="{{ product.image_url }}" alt="{{ product.name }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid'">{% endif %}
+    <div class="image-fallback detail-fallback" {% if product.image_url %}style="display:none"{% endif %}>{{ product.name[:1] }}</div>
+    {% if product.stock <= 0 %}<span class="stock-badge out">Out of stock</span>{% endif %}
+  </div>
+  <div class="detail-info">
+    <p class="eyebrow">{{ product.category }}</p>
+    <h1>{{ product.name }}</h1>
+    <div class="product-rating-summary" aria-label="{{ '%.1f'|format(rating_summary.average_rating) }} out of 5 stars">
+      <span class="rating-stars">{% for star in range(1, 6) %}{{ '★' if star <= (rating_summary.average_rating|round(0, 'floor')|int) else '☆' }}{% endfor %}</span>
+      <strong>{{ '%.1f'|format(rating_summary.average_rating) }}</strong>
+      <a href="#reviews">{{ rating_summary.review_count }} review{% if rating_summary.review_count != 1 %}s{% endif %}</a>
+    </div>
+    <div class="detail-price">₱{{ '%.2f'|format(product.price) }}</div>
+    <p class="detail-description">{{ product.description or 'No additional description is available for this product.' }}</p>
+    <p class="detail-stock {% if product.stock <= 0 %}out-text{% endif %}">{% if product.stock > 0 %}{{ product.stock }} available in stock{% else %}Currently unavailable{% endif %}</p>
+    {% if product.stock > 0 %}
+      {% if session.get('user_id') %}
+      <form class="detail-cart-form" method="post" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <label for="quantity">Quantity</label><input id="quantity" type="number" name="quantity" min="1" max="{{ product.stock }}" value="1">
+        <button class="btn btn-primary" type="submit">Add to cart <span aria-hidden="true">＋</span></button>
+      </form>
+      {% else %}<a class="btn btn-primary" href="{{ url_for('login') }}">Log in to purchase</a>{% endif %}
+    {% else %}<button class="btn btn-primary" disabled>Out of stock</button>{% endif %}
+    <a class="detail-continue" href="{{ url_for('home') }}">Continue browsing products</a>
+  </div>
+</section>
+
+<section class="reviews-section panel" id="reviews">
+  <div class="reviews-heading"><div><p class="eyebrow">CUSTOMER FEEDBACK</p><h2>Ratings & reviews</h2><p class="muted">Only customers with delivered orders can submit a verified review.</p></div>
+    <div class="reviews-score"><strong>{{ '%.1f'|format(rating_summary.average_rating) }}</strong><span class="rating-stars">{% for star in range(1, 6) %}{{ '★' if star <= (rating_summary.average_rating|round(0, 'floor')|int) else '☆' }}{% endfor %}</span><small>{{ rating_summary.review_count }} total review{% if rating_summary.review_count != 1 %}s{% endif %}</small></div></div>
+  {% if eligible_orders %}
+    <div class="review-form-wrap"><h3>Write a review</h3>
+      {% for order in eligible_orders %}
+      <form class="review-form" method="post" action="{{ url_for('submit_review', product_id=product.id) }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <label for="order-{{ order.id }}">Delivered order</label><select id="order-{{ order.id }}" name="order_id" required><option value="{{ order.id }}">{{ order.order_number }}</option></select>
+        <label for="rating-{{ order.id }}">Your rating</label><select id="rating-{{ order.id }}" name="rating" required><option value="">Choose stars</option><option value="5">★★★★★ — Excellent</option><option value="4">★★★★☆ — Very good</option><option value="3">★★★☆☆ — Good</option><option value="2">★★☆☆☆ — Fair</option><option value="1">★☆☆☆☆ — Poor</option></select>
+        <label for="comment-{{ order.id }}">Your review (optional)</label><textarea id="comment-{{ order.id }}" name="comment" maxlength="1000" rows="3" placeholder="Share your experience with this product..."></textarea>
+        <button class="btn btn-primary" type="submit">Submit verified review</button>
+      </form>
+      {% endfor %}
+    </div>
+  {% elif session.get('user_id') %}
+    <p class="review-hint">You can write a review after an order containing this product has been marked as Delivered.</p>
+  {% else %}<p class="review-hint"><a href="{{ url_for('login') }}">Sign in</a> to see whether you are eligible to review this product.</p>{% endif %}
+  <div class="review-list">
+    {% for review in reviews %}
+    <article class="review-item"><div class="review-item-top"><div><strong>{{ review.full_name }}</strong><span class="verified-label">✓ Verified purchase</span></div><span class="rating-stars">{% for star in range(1, 6) %}{{ '★' if star <= review.rating else '☆' }}{% endfor %}</span></div>
+      {% if review.comment %}<p>{{ review.comment }}</p>{% else %}<p class="muted">Customer left a star rating without a written comment.</p>{% endif %}
+      <small class="muted">{{ review.created_at }}</small>
+      {% if session.get('user_id') == review.user_id %}<form method="post" action="{{ url_for('delete_review', product_id=product.id, review_id=review.id) }}" onsubmit="return confirm('Delete your review?')"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="review-delete" type="submit">Delete my review</button></form>{% endif %}
+    </article>
+    {% else %}<div class="review-empty"><span>☆</span><strong>No reviews yet</strong><p>Be the first customer to share feedback after your order is delivered.</p></div>{% endfor %}
+  </div>
+</section>
+{% endblock %}

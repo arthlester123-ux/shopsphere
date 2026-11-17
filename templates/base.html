@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>{% block title %}ShopSphere | E-Commerce Order Processing{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
+  <script defer src="{{ url_for('static', filename='js/main.js') }}?v=3"></script>
+</head>
+<body>
+<div class="announcement-bar"><span>✦</span> Everyday essentials, better finds. <strong>Discover something useful today.</strong></div>
+<header class="site-header">
+  <a class="brand" href="{{ url_for('home') }}"><span class="brand-mark">S</span><span>ShopSphere</span></a>
+  <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+  <nav class="nav-links" aria-label="Main navigation">
+    <a href="{{ url_for('home') }}#products">Shop</a>
+    <a href="{{ url_for('home') }}#categories">Categories</a>
+    {% if session.get('user_id') %}
+      <a href="{{ url_for('orders') }}">My Orders</a>
+      {% if session.get('role') == 'admin' %}<a href="{{ url_for('admin_dashboard') }}">Admin</a><a href="{{ url_for('admin_database') }}">Database</a>{% endif %}
+      <a class="nav-cart" href="{{ url_for('cart') }}"><span aria-hidden="true">♧</span> Cart <span class="cart-count">{{ cart_count }}</span></a>
+      <span class="welcome">Hi, {{ session.get('full_name', 'User') }}</span>
+      <form method="post" action="{{ url_for('logout') }}" class="inline-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="nav-logout" type="submit">Logout</button></form>
+    {% else %}
+      <a href="{{ url_for('login') }}">Sign in</a>
+      <a class="nav-register" href="{{ url_for('register') }}">Create account</a>
+    {% endif %}
+  </nav>
+</header>
+<main class="page-shell">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<div class="alert alert-{{ category }}">{{ message }}</div>{% endfor %}
+  {% endwith %}
+  {% if request.endpoint not in ['home', 'login', 'register'] %}
+    <div class="back-row"><a class="back-button" href="{{ url_for('home') }}" onclick="if (document.referrer && new URL(document.referrer).origin === location.origin) { history.back(); return false; }">← <span>Back</span></a></div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="footer">
+  <div class="footer-inner"><a class="brand footer-brand" href="{{ url_for('home') }}"><span class="brand-mark">S</span><span>ShopSphere</span></a><p>Good finds for everyday living.</p><div class="footer-links"><a href="{{ url_for('home') }}#products">Shop</a><a href="{{ url_for('home') }}#categories">Categories</a>{% if session.get('user_id') %}<a href="{{ url_for('orders') }}">Orders</a>{% endif %}</div></div>
+  <div class="footer-bottom">© {{ current_year }} ShopSphere. Built for convenient everyday shopping.</div>
+</footer>
+</body>
+</html>

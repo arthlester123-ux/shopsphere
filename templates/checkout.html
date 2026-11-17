@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Checkout | ShopSphere{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">SECURE DEMO CHECKOUT</p><h1>Complete your order</h1><p class="muted">Review your items and delivery details before placing the order.</p></div></div>
+<div class="cart-layout checkout-layout"><section class="panel"><h2>Delivery information</h2><form method="post" class="stack-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<label>Contact number<input type="tel" name="contact_number" required minlength="7" maxlength="24" placeholder="09XX XXX XXXX" autocomplete="tel"></label>
+<label>Complete shipping address<textarea name="shipping_address" rows="4" required minlength="8" placeholder="House/Unit, street, barangay, city, province, postal code" autocomplete="street-address"></textarea></label>
+<label>Payment method<select name="payment_method" required><option value="Cash on Delivery">Cash on Delivery</option><option value="Demo E-Wallet (no real charge)">Demo E-Wallet (no real charge)</option></select></label>
+<p class="muted checkout-note">This is a school demonstration. No real payment is processed or collected.</p>
+<button class="btn btn-primary" type="submit">Place order · ₱{{ '%.2f'|format(total) }}</button></form></section>
+<aside class="summary-card"><h2>Order summary</h2>{% for item in items %}<div class="summary-line"><span>{{ item.name }} × {{ item.quantity }}</span><strong>₱{{ '%.2f'|format(item.subtotal) }}</strong></div>{% endfor %}<hr><div class="summary-line"><span>Shipping</span><strong>Free</strong></div><div class="summary-line total-line"><span>Total</span><strong>₱{{ '%.2f'|format(total) }}</strong></div><small>Stock is checked again when you place the order.</small></aside></div>
+{% endblock %}

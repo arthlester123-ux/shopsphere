@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if product else 'Add' }} Product | ShopSphere{% endblock %}
+{% block content %}
+<div class="page-heading"><p class="eyebrow">STORE CATALOG</p><h1>{{ 'Edit product' if product else 'Add a product' }}</h1></div>
+<section class="panel form-panel"><form method="post" class="stack-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<label>Product name<input name="name" required value="{{ product.name if product else '' }}"></label>
+<label>Description<textarea name="description" rows="3">{{ product.description if product else '' }}</textarea></label>
+<div class="form-row"><label>Category<input name="category" value="{{ product.category if product else 'General' }}" required></label><label>Price (₱)<input type="number" name="price" min="0" step="0.01" required value="{{ product.price if product else '0.00' }}"></label></div>
+<div class="form-row"><label>Stock quantity<input type="number" name="stock" min="0" step="1" required value="{{ product.stock if product else 0 }}"></label><label>Image URL<input type="url" name="image_url" value="{{ product.image_url if product else '' }}" placeholder="https://..."></label></div>
+<button class="btn btn-primary" type="submit">Save product</button><a class="continue-link" href="{{ url_for('admin_products') }}">Back to products</a></form></section>
+{% endblock %}

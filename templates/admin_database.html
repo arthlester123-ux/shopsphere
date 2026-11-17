@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Database Management | ShopSphere{% endblock %}
+{% block content %}
+<section class="section-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>Database management</h1><p class="muted">Live overview of your ShopSphere SQLite records and activity logs.</p></div><a class="primary-button" href="{{ url_for('database_backup') }}">Download database backup</a></section>
+<div class="database-grid">
+{% for name, count in counts.items() %}<article class="database-stat"><span>{{ name.replace('_',' ')|title }}</span><strong>{{ count }}</strong><small>records</small></article>{% endfor %}
+</div>
+<section class="panel" style="margin-top:18px"><h2>Database health check</h2><p>SQLite integrity: <strong class="{{ 'stock-in' if integrity == 'ok' else 'stock-out' }}">{{ integrity|upper }}</strong></p><p>Foreign-key issues found: <strong class="{{ 'stock-in' if foreign_key_issue_count == 0 else 'stock-out' }}">{{ foreign_key_issue_count }}</strong></p><p class="muted">A healthy database should report integrity as OK and zero foreign-key issues.</p></section>
+<section class="panel" style="margin-top:28px"><div class="panel-heading"><div><h2>Inventory activity</h2><p class="muted">Every stock addition and deduction recorded.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Date</th><th>Product</th><th>Change</th><th>Reason</th><th>Reference</th></tr></thead><tbody>
+{% for row in recent_stock %}<tr><td>{{ row.created_at }}</td><td>{{ row.product_name or 'Deleted product' }}</td><td class="{{ 'stock-in' if row.change_amount > 0 else 'stock-out' }}">{{ '+' if row.change_amount > 0 else '' }}{{ row.change_amount }}</td><td>{{ row.reason }}</td><td>{{ row.reference or '—' }}</td></tr>{% else %}<tr><td colspan="5">No inventory activity yet.</td></tr>{% endfor %}
+</tbody></table></div></section>
+<section class="panel" style="margin-top:24px"><div class="panel-heading"><div><h2>Order status history</h2><p class="muted">A record of order workflow changes.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Date</th><th>Order</th><th>Customer</th><th>Previous</th><th>New status</th><th>Note</th></tr></thead><tbody>
+{% for row in recent_status %}<tr><td>{{ row.created_at }}</td><td>{{ row.order_number }}</td><td>{{ row.full_name or 'System' }}</td><td>{{ row.old_status or '—' }}</td><td>{{ row.new_status }}</td><td>{{ row.note or '—' }}</td></tr>{% else %}<tr><td colspan="6">No order status activity yet.</td></tr>{% endfor %}
+</tbody></table></div></section>
+<p class="muted" style="margin-top:18px">Database file: <strong>{{ database_name }}</strong>. Backups are generated using SQLite's online backup API.</p>
+<style>.database-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}.database-stat,.panel{background:var(--surface,#fff);border:1px solid var(--line,#e7eaf0);border-radius:16px;padding:20px}.database-stat span,.database-stat small{display:block;color:var(--muted,#6b7280);text-transform:capitalize}.database-stat strong{display:block;font-size:30px;margin:8px 0}.panel-heading{margin-bottom:16px}.panel-heading h2{margin:0}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line,#e7eaf0)}th{font-size:12px;text-transform:uppercase;color:var(--muted,#6b7280)}.stock-in{color:#16834a;font-weight:700}.stock-out{color:#c24141;font-weight:700}</style>
+{% endblock %}

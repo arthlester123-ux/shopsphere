@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Create account | ShopSphere{% endblock %}
+{% block content %}
+<div class="auth-wrap"><section class="auth-card"><p class="eyebrow">JOIN SHOPSPHERE</p><h1>Create your account</h1><p class="muted">A few details and you're ready to shop.</p>
+<form method="post" class="stack-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<label>Full name<input name="full_name" required maxlength="100" autocomplete="name"></label>
+<label>Email address<input type="email" name="email" required autocomplete="email"></label>
+<label>Password<input type="password" name="password" required minlength="8" autocomplete="new-password"><small>At least 8 characters.</small></label>
+<button class="btn btn-primary btn-wide" type="submit">Create account</button></form>
+<p class="auth-switch">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+</section></div>
+{% endblock %}
